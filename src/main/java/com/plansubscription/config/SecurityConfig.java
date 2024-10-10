@@ -1,12 +1,10 @@
 package com.plansubscription.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,38 +16,43 @@ import com.plansubscription.serviceImpl.CustomUserDetailsService;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private CustomUserDetailsService customUserDetailsService; // Your CustomUserDetailsService
+   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception
+   {
+	   http
+	   .csrf(AbstractHttpConfigurer::disable)// Disable CSRF for simplicity (enable for production)
+	   .authorizeHttpRequests(auth -> auth
+			   .requestMatchers("/login","register").permitAll()
+	   		   .requestMatchers("/createUser").authenticated()
+	   		   .anyRequest().authenticated()
+	   		   )
+	   		   .formLogin(form-> form
+	   		   .loginPage("/login")  // Custom login page
+	   		   .permitAll()
+	   		   )
+	   		.logout(logout -> logout
+	                .logoutUrl("/logout")
+	                .logoutSuccessUrl("/login?logout")
+	                .invalidateHttpSession(true)
+	                .deleteCookies("JSESSIONID")
+	                .permitAll()
+	            )
+	            .sessionManagement(session -> session
+	                .sessionFixation().migrateSession()  // Session fixation protection
+	                .maximumSessions(1)  // Only 1 active session per user
+	            );
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // For encoding passwords
-    }
+	        return http.build();
+	    }
 
-    // Configures authentication manager to use your CustomUserDetailsService
-    @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http, PasswordEncoder passwordEncoder, UserDetailsService userDetailsService) 
-        throws Exception {
-        return http.getSharedObject(AuthenticationManagerBuilder.class)
-            .userDetailsService(userDetailsService)
-            .passwordEncoder(passwordEncoder)
-            .and()
-            .build();
-    }
+	    @Bean
+	    public PasswordEncoder passwordEncoder() {
+	        return new BCryptPasswordEncoder();
+	    }
 
-    // Security Filter Chain configuration for securing endpoints
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf().disable()  // Disable CSRF for simplicity (not recommended for production without proper measures)
-            .authorizeHttpRequests((requests) -> requests
-                .requestMatchers("/public/**").permitAll() // Allow public access to these endpoints
-                .anyRequest().authenticated()  // All other requests require authentication
-            )
-            .formLogin() // Enable form-based login
-            .and()
-            .httpBasic();  // Enable Basic authentication (you can remove this if you don't need it)
-        
-        return http.build();
-    }
-}
+	    @Bean
+	    public UserDetailsService userDetailsService() {
+	        // Custom UserDetailsService to load users from the database without roles
+	        return new CustomUserDetailsService();
+	    }
+	}
+   

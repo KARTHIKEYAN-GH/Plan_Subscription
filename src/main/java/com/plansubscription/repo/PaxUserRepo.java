@@ -12,5 +12,7 @@ import com.plansubscription.model.PaxUser;
 public interface PaxUserRepo extends JpaRepository<PaxUser, Long>{
 
 	List<PaxUser> findByName(String name);
+	Optional<PaxUser> findByPhoneNumber(String phoneNumber);
+	Optional<PaxUser> findByEmail(String email);
 
 }

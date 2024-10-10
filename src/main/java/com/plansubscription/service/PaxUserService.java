@@ -4,4 +4,5 @@ import com.plansubscription.model.PaxUser;
 
 public interface PaxUserService {
 	PaxUser createpaxHead(PaxUser paxUser);
+	PaxUser createpaxMember(PaxUser paxUser);
 }

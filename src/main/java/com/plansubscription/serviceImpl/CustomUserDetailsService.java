@@ -1,5 +1,7 @@
 package com.plansubscription.serviceImpl;
 
+import java.util.ArrayList;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -19,7 +21,11 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
         AdminUser adminUser = adminUserRepo.findByUserName(userName)
             .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        return new CustomUserDetails(adminUser);
+        return new org.springframework.security.core.userdetails.User(
+        		adminUser.getUserName(),
+        		adminUser.getPassword(),
+                new ArrayList<>()  // No roles or authorities
+            );
     }
 }
 

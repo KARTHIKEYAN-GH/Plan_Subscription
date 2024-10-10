@@ -17,11 +17,15 @@ public class PaxUserServiceImpl implements PaxUserService{
 	private PaxUserRepo paxUserRepo;
 	@Override
 	public PaxUser createpaxHead(PaxUser paxUser) {
-		List<PaxUser> oldUsers = paxUserRepo.findByName(paxUser.getName());
+		PaxUser existMobilenumber = paxUserRepo.findByPhoneNumber(paxUser.getPhoneNumber()).orElseThrow(()->  new IllegalArgumentException("Mobile number already exist"));
+		paxUserRepo.findByPhoneNumber(paxUser.getPhoneNumber()).ifPresent(PaxUser->{new IllegalArgumentException("");});
+	    //.ifPresent(user -> { throw new IllegalArgumentException("Mobile number already exist"); });
+
+		Optional<PaxUser> existMail=paxUserRepo.findByEmail(paxUser.getEmail());
 	    
-	    if (!oldUsers.isEmpty()) {
-	        throw new RuntimeException("User name already exists");
-	    }
+//	    if (!oldUsers.isEmpty()) {
+//	        throw new RuntimeException("User name already exists");
+//	    }
 	    paxUser.setName(paxUser.getName());
 	    paxUser.setEmail(paxUser.getEmail());
 	    paxUser.setPhoneNumber(paxUser.getPhoneNumber());
@@ -30,6 +34,11 @@ public class PaxUserServiceImpl implements PaxUserService{
 		PaxUser newPaxHead=paxUserRepo.save(paxUser);
 		return newPaxHead;
 		
+	}
+	@Override
+	public PaxUser createpaxMember(PaxUser paxUser) {
+		
+		return null;
 	}
 
 }
